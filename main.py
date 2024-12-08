@@ -1,3 +1,4 @@
+import sys
 import os
 import json
 import sqlite3
@@ -41,6 +42,9 @@ def db_init(cur: sqlite3.Cursor):
         played_at TEXT,
         playlist_uri TEXT
     );""")
+    cur.execute("""CREATE TABLE IF NOT EXISTS cutoff (
+        timestamp INTEGER
+    );""")
 
 def db_write_played(spotify_res: dict, cur: sqlite3.Cursor):
     for item in spotify_res['items']:
@@ -74,14 +78,31 @@ def db_fetch_names(cur: sqlite3.Cursor) -> list[tuple]:
 
     return rows
 
+def db_write_cutoff(cur: sqlite3.Cursor, cutoff: int):
+    cur.execute("DELETE FROM cutoff")
+    cur.execute("INSERT INTO cutoff (timestamp) VALUES (?);", (cutoff,))
+
+def db_read_cutoff(cur: sqlite3.Cursor) -> int | None:
+    cur.execute("SELECT timestamp FROM cutoff LIMIT 1")
+    result = cur.fetchone()
+    return result[0] if result else None
+
 # ms since epoch -- time when the oldest song was played
 # cutoff: int = int(results["cursors"]["before"])
 
 if __name__ == "__main__":
-    results = spotify_fetch()
-
     conn, cur = db_connect()
     db_init(cur)
+
+    cutoff = db_read_cutoff(cur)
+    results = spotify_fetch(cutoff)
+
+    if not results["items"]:
+        sys.exit(1)
+
+    if results.get("cursors", None):
+        print(f"Saving cutoff timestamp {results["cursors"]["after"]}")
+        db_write_cutoff(cur, int(results["cursors"]["after"]))
 
     db_write_played(results, cur)
     names = db_fetch_names(cur)
