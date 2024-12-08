@@ -20,4 +20,6 @@ results = sp.current_user_recently_played()
 with open("results.json", "w") as f:
     f.write(json.dumps(results, indent=2, ensure_ascii=False))
 
-print([x["track"]["name"] for x in results["items"]])
+summary: list[str] = [str((x["track"]["name"], x["played_at"])) for x in results["items"]]
+
+print("\n".join(summary))
