@@ -7,75 +7,92 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# === SPOTIFY FETCH ===
-sp = spotipy.Spotify(auth_manager=spotipy.oauth2.SpotifyOAuth(
-                    client_id=os.environ.get("SPOTIFY_CLIENT_ID"),
-                    client_secret=os.environ.get("SPOTIFY_CLIENT_SECRET"),
-                    redirect_uri=os.environ.get("SPOTIFY_REDIRECT_URI"),
-                    scope="user-read-recently-played"))
+def spotify_fetch(after: int | None = None) -> dict:
+    sp = spotipy.Spotify(auth_manager=spotipy.oauth2.SpotifyOAuth(
+                        client_id=os.environ.get("SPOTIFY_CLIENT_ID"),
+                        client_secret=os.environ.get("SPOTIFY_CLIENT_SECRET"),
+                        redirect_uri=os.environ.get("SPOTIFY_REDIRECT_URI"),
+                        scope="user-read-recently-played"))
 
-# 50 most recent songs
-# spotify allows time limits, (before=..., after=...)
-# but we can never get more than 50 most recent
-results = sp.current_user_recently_played()
+    # 50 most recent songs
+    # spotify allows time limits, (before=..., after=...)
+    # but we can never get more than 50 most recent
+    after = after if after and after > 0 else None
+    results = sp.current_user_recently_played(after=after)
+
+    print(len(results.get("items", [])), "items fetched from Spotify")
+
+    return results
+
+def db_connect(name: str = "data.db") -> tuple[sqlite3.Connection, sqlite3.Cursor]:
+    conn = sqlite3.connect("data.db")
+    cur = conn.cursor()
+    return conn, cur
+
+def db_init(cur: sqlite3.Cursor):
+    cur.execute("""CREATE TABLE IF NOT EXISTS played (
+        song_name TEXT,
+        song_id TEXT,
+        artist_name TEXT,
+        artist_id TEXT,
+        album_name TEXT,
+        album_id TEXT,
+        song_duration_ms INTEGER,
+        played_at TEXT,
+        playlist_uri TEXT
+    );""")
+
+def db_write_played(spotify_res: dict, cur: sqlite3.Cursor):
+    for item in spotify_res['items']:
+        track = item['track']
+        context = item.get('context', {})
+
+        song_name = track['name']
+        song_id = track['id']
+        artist_name = track['artists'][0]['name']
+        artist_id = track['artists'][0]['id']
+        album_name = track['album']['name']
+        album_id = track['album']['id']
+        song_duration_ms = track['duration_ms']
+        played_at = item['played_at']
+        playlist_uri = None
+
+        if context and context.get("type") == "playlist":
+            playlist_uri = context.get('uri', None)
+
+        cur.execute("""
+            INSERT INTO played (
+                song_name, song_id, artist_name, artist_id, album_name, album_id,
+                song_duration_ms, played_at, playlist_uri
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+        """, (song_name, song_id, artist_name, artist_id, album_name, album_id,
+                song_duration_ms, played_at, playlist_uri))
+
+def db_fetch_names(cur: sqlite3.Cursor) -> list[tuple]:
+    cur.execute("SELECT song_name FROM played")
+    rows = cur.fetchall()
+
+    return rows
 
 # ms since epoch -- time when the oldest song was played
-cutoff: int = int(results["cursors"]["before"])
+# cutoff: int = int(results["cursors"]["before"])
 
-# === MANUAL RESULTS PROCESSING ===
-# with open("results.json", "w") as f:
-#     f.write(json.dumps(results, indent=2, ensure_ascii=False))
+if __name__ == "__main__":
+    results = spotify_fetch()
 
-summary: list[str] = [str((x["track"]["name"], x["played_at"])) for x in results["items"]]
+    conn, cur = db_connect()
+    db_init(cur)
 
-print("\n".join(summary))
+    db_write_played(results, cur)
+    names = db_fetch_names(cur)
 
-# === DB WRITE ===
-conn = sqlite3.connect("data.db")
-cur = conn.cursor()
-cur.execute("""CREATE TABLE IF NOT EXISTS played (
-    song_name TEXT,
-    song_id TEXT,
-    artist_name TEXT,
-    artist_id TEXT,
-    album_name TEXT,
-    album_id TEXT,
-    song_duration_ms INTEGER,
-    played_at TEXT,
-    playlist_uri TEXT
-);""")
+    conn.commit()
+    conn.close()
 
-for item in results['items']:
-    track = item['track']
-    context = item.get('context', {})
+    # with open("results.json", "w") as f:
+    #     f.write(json.dumps(results, indent=2, ensure_ascii=False))
 
-    song_name = track['name']
-    song_id = track['id']
-    artist_name = track['artists'][0]['name']
-    artist_id = track['artists'][0]['id']
-    album_name = track['album']['name']
-    album_id = track['album']['id']
-    song_duration_ms = track['duration_ms']
-    played_at = item['played_at']
-    playlist_uri = None
+    summary: list[str] = [str((x["track"]["name"], x["played_at"])) for x in results["items"]]
 
-    if context and context.get("type") == "playlist":
-        playlist_uri = context.get('uri', None)
-
-    cur.execute("""
-        INSERT INTO played (
-            song_name, song_id, artist_name, artist_id, album_name, album_id,
-            song_duration_ms, played_at, playlist_uri
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-    """, (song_name, song_id, artist_name, artist_id, album_name, album_id,
-            song_duration_ms, played_at, playlist_uri))
-
-conn.commit()
-
-# def list_all_names():
-
-cur.execute("SELECT song_name FROM played")
-rows = cur.fetchall()
-print(rows)
-
-conn.close()
+    print("\n".join(summary))
+    print(f"Total rows in DB: {len(names)}")
