@@ -6,6 +6,7 @@ import spotipy
 from dotenv import load_dotenv
 
 from queries import QUERIES_CREATE_TABLES, QUERY_FETCH_PLAY_COUNT
+from streamlit_app import app_header, print_table
 
 load_dotenv()
 
@@ -150,5 +151,9 @@ if __name__ == "__main__":
 
     if "-i" in sys.argv or "--interactive" in sys.argv:
         interactive(conn, cur)
+
+    if "--no-streamlit" not in sys.argv:
+        app_header()
+        print_table(names)
 
     conn.close()
