@@ -6,6 +6,8 @@ import sqlite3
 import spotipy
 from dotenv import load_dotenv
 
+from queries import QUERIES_CREATE_TABLES, QUERY_FETCH_PLAY_COUNT
+
 load_dotenv()
 
 def spotify_fetch(after: int | None = None) -> dict:
@@ -31,20 +33,8 @@ def db_connect(name: str = "data.db") -> tuple[sqlite3.Connection, sqlite3.Curso
     return conn, cur
 
 def db_init(cur: sqlite3.Cursor):
-    cur.execute("""CREATE TABLE IF NOT EXISTS played (
-        song_name TEXT,
-        song_id TEXT,
-        artist_name TEXT,
-        artist_id TEXT,
-        album_name TEXT,
-        album_id TEXT,
-        song_duration_ms INTEGER,
-        played_at TEXT,
-        playlist_uri TEXT
-    );""")
-    cur.execute("""CREATE TABLE IF NOT EXISTS cutoff (
-        timestamp INTEGER
-    );""")
+    for q in QUERIES_CREATE_TABLES:
+        cur.execute(q)
 
 def db_write_played(spotify_res: dict, cur: sqlite3.Cursor):
     for item in spotify_res['items']:
@@ -71,27 +61,6 @@ def db_write_played(spotify_res: dict, cur: sqlite3.Cursor):
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
         """, (song_name, song_id, artist_name, artist_id, album_name, album_id,
                 song_duration_ms, played_at, playlist_uri))
-
-def db_fetch_names(cur: sqlite3.Cursor) -> list[tuple]:
-    cur.execute("SELECT song_name FROM played")
-
-def db_fetch_play_count(cur: sqlite3.Cursor) -> list[tuple]:
-    cur.execute("""
-    SELECT
-        song_name,
-        artist_name,
-        COUNT(*) AS play_count
-    FROM
-        played
-    GROUP BY
-        song_id, song_name
-    ORDER BY
-        play_count DESC
-    LIMIT
-        20;""")
-    rows = cur.fetchall()
-
-    return rows
 
 def db_write_cutoff(cur: sqlite3.Cursor, cutoff: int):
     cur.execute("DELETE FROM cutoff")
@@ -135,7 +104,8 @@ if __name__ == "__main__":
     cur.execute("SELECT COUNT(DISTINCT song_id) FROM played")
     print(f"Total unique songs in DB: {cur.fetchone()[0]}")
 
-    names = db_fetch_play_count(cur)
+    cur.execute(QUERY_FETCH_PLAY_COUNT)
+    names = cur.fetchall()
     print("\n".join([f"{x[0]:50s}{x[1]:30s}{x[2]:4d}" for x in names]))
 
 
