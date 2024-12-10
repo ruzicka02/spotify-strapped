@@ -92,13 +92,7 @@ def db_read_cutoff(cur: sqlite3.Cursor) -> int | None:
     return result[0] if result else None
 
 
-# ms since epoch -- time when the oldest song was played
-# cutoff: int = int(results["cursors"]["before"])
-
-if __name__ == "__main__":
-    conn, cur = db_connect()
-    db_init(cur)
-
+def single_fetch(cur: sqlite3.Cursor):
     cutoff = db_read_cutoff(cur)
     results = spotify_fetch(cutoff)
 
@@ -110,8 +104,6 @@ if __name__ == "__main__":
 
         db_write_played(results, cur)
 
-        conn.commit()
-        conn.close()
         # with open("results.json", "w") as f:
         #     f.write(json.dumps(results, indent=2, ensure_ascii=False))
 
@@ -120,6 +112,31 @@ if __name__ == "__main__":
         ]
 
         print("\n".join(summary))
+
+
+def interactive(conn: sqlite3.Connection, cur: sqlite3.Cursor):
+    while True:
+        print("Write SQL query, leave empty to end:")
+        q = input()
+        if not q:
+            return
+
+        try:
+            cur.execute(q)
+            if res := cur.fetchall():
+                print(res)
+            conn.commit()
+        except Exception as e:
+            print(f"Oops! try again\n{e}")
+
+
+
+if __name__ == "__main__":
+    conn, cur = db_connect()
+    db_init(cur)
+
+    single_fetch(cur)
+    conn.commit()
 
     cur.execute("SELECT COUNT(*) FROM played")
     print(f"Total records in DB: {cur.fetchone()[0]}")
@@ -132,16 +149,6 @@ if __name__ == "__main__":
     print("\n".join([f"{x[0]:50s}{x[1]:30s}{x[2]:4d}" for x in names]))
 
     if "-i" in sys.argv or "--interactive" in sys.argv:
-        while True:
-            print("Write SQL query, leave empty to end:")
-            q = input()
-            if not q:
-                break
+        interactive(conn, cur)
 
-            try:
-                cur.execute(q)
-                if res := cur.fetchall():
-                    print(res)
-                conn.commit()
-            except Exception as e:
-                print(f"Oops! try again\n{e}")
+    conn.close()
