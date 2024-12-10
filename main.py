@@ -116,3 +116,18 @@ if __name__ == "__main__":
 
     names = db_fetch_names(cur)
     print(f"Total rows in DB: {len(names)}")
+
+    if "-i" in sys.argv or "--interactive" in sys.argv:
+        while True:
+            print("Write SQL query, leave empty to end:")
+            q = input()
+            if not q:
+                break
+
+            try:
+                cur.execute(q)
+                if res := cur.fetchall():
+                    print(res)
+                conn.commit()
+            except Exception as e:
+                print(f"Oops! try again\n{e}")
