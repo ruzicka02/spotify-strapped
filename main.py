@@ -97,23 +97,22 @@ if __name__ == "__main__":
     cutoff = db_read_cutoff(cur)
     results = spotify_fetch(cutoff)
 
-    if not results["items"]:
-        sys.exit(1)
+    if results["items"]:
 
-    if results.get("cursors", None):
-        print(f"Saving cutoff timestamp {results["cursors"]["after"]}")
-        db_write_cutoff(cur, int(results["cursors"]["after"]))
+        if results.get("cursors", None):
+            print(f"Saving cutoff timestamp {results["cursors"]["after"]}")
+            db_write_cutoff(cur, int(results["cursors"]["after"]))
 
-    db_write_played(results, cur)
+        db_write_played(results, cur)
+
+        conn.commit()
+        conn.close()
+        # with open("results.json", "w") as f:
+        #     f.write(json.dumps(results, indent=2, ensure_ascii=False))
+
+        summary: list[str] = [str((x["track"]["name"], x["played_at"])) for x in results["items"]]
+
+        print("\n".join(summary))
+
     names = db_fetch_names(cur)
-
-    conn.commit()
-    conn.close()
-
-    # with open("results.json", "w") as f:
-    #     f.write(json.dumps(results, indent=2, ensure_ascii=False))
-
-    summary: list[str] = [str((x["track"]["name"], x["played_at"])) for x in results["items"]]
-
-    print("\n".join(summary))
     print(f"Total rows in DB: {len(names)}")
