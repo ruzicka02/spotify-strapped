@@ -1,14 +1,13 @@
 import sys
 import os
 import sqlite3
+import time
 
 import spotipy
 from dotenv import load_dotenv
 
 from queries import QUERY_FETCH_PLAY_COUNT
 from db import db_connect, db_init, db_read_cutoff, db_write_cutoff, db_write_played
-
-load_dotenv()
 
 
 def spotify_fetch(after: int | None = None) -> dict:
@@ -71,23 +70,35 @@ def interactive(conn: sqlite3.Connection, cur: sqlite3.Cursor):
 
 
 if __name__ == "__main__":
-    conn, cur = db_connect()
-    db_init(cur)
+    while True:
+        load_dotenv()
 
-    single_fetch(cur)
-    conn.commit()
+        refresh_period = int(os.environ.get("REFRESH_PERIOD_S"))
 
-    cur.execute("SELECT COUNT(*) FROM played")
-    print(f"Total records in DB: {cur.fetchone()[0]}")
+        conn, cur = db_connect()
+        db_init(cur)
 
-    cur.execute("SELECT COUNT(DISTINCT song_id) FROM played")
-    print(f"Total unique songs in DB: {cur.fetchone()[0]}")
+        single_fetch(cur)
+        conn.commit()
 
-    cur.execute(QUERY_FETCH_PLAY_COUNT)
-    names = cur.fetchall()
-    print("\n".join([f"{x[0]:50s}{x[1]:30s}{x[2]:4d}" for x in names]))
+        cur.execute("SELECT COUNT(*) FROM played")
+        print(f"Total records in DB: {cur.fetchone()[0]}")
 
-    if "-i" in sys.argv or "--interactive" in sys.argv:
-        interactive(conn, cur)
+        cur.execute("SELECT COUNT(DISTINCT song_id) FROM played")
+        print(f"Total unique songs in DB: {cur.fetchone()[0]}")
 
-    conn.close()
+        cur.execute(QUERY_FETCH_PLAY_COUNT)
+        names = cur.fetchall()
+        print("\n".join([f"{x[0]:50s}{x[1]:30s}{x[2]:4d}" for x in names]))
+
+        if "-i" in sys.argv or "--interactive" in sys.argv:
+            interactive(conn, cur)
+
+        conn.close()
+
+        if "-O" in sys.argv or "--only-once" in sys.argv:
+            break
+
+        print(f"Waking up at {time.asctime(time.gmtime(time.time() + refresh_period))} UTC")
+        time.sleep(refresh_period)
+
