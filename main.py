@@ -38,7 +38,7 @@ def single_fetch(cur: sqlite3.Cursor):
     # non-zero amount of songs found
     if results["items"]:
         if results.get("cursors", None):
-            print(f"Saving cutoff timestamp {results["cursors"]["after"]}")
+            print(f"Saving cutoff timestamp {results['cursors']['after']}")
             db_write_cutoff(cur, int(results["cursors"]["after"]))
 
         db_write_played(results, cur)
@@ -99,6 +99,7 @@ if __name__ == "__main__":
         if "-O" in sys.argv or "--only-once" in sys.argv:
             break
 
-        print(f"Waking up at {time.asctime(time.gmtime(time.time() + refresh_period))} UTC")
+        print(
+            f"Waking up at {time.asctime(time.gmtime(time.time() + refresh_period))} UTC"
+        )
         time.sleep(refresh_period)
-
