@@ -12,7 +12,7 @@ QUERIES_CREATE_TABLES: list[str] = [
     );""",
     """CREATE TABLE IF NOT EXISTS cutoff (
         timestamp INTEGER
-    );"""
+    );""",
 ]
 
 QUERY_FETCH_PLAY_COUNT: str = """
