@@ -74,6 +74,21 @@ def db_write_played(spotify_res: dict, cur: sqlite3.Cursor):
 
 def db_fetch_names(cur: sqlite3.Cursor) -> list[tuple]:
     cur.execute("SELECT song_name FROM played")
+
+def db_fetch_play_count(cur: sqlite3.Cursor) -> list[tuple]:
+    cur.execute("""
+    SELECT
+        song_name,
+        artist_name,
+        COUNT(*) AS play_count
+    FROM
+        played
+    GROUP BY
+        song_id, song_name
+    ORDER BY
+        play_count DESC
+    LIMIT
+        20;""")
     rows = cur.fetchall()
 
     return rows
@@ -114,8 +129,15 @@ if __name__ == "__main__":
 
         print("\n".join(summary))
 
-    names = db_fetch_names(cur)
-    print(f"Total rows in DB: {len(names)}")
+    cur.execute("SELECT COUNT(*) FROM played")
+    print(f"Total records in DB: {cur.fetchone()[0]}")
+
+    cur.execute("SELECT COUNT(DISTINCT song_id) FROM played")
+    print(f"Total unique songs in DB: {cur.fetchone()[0]}")
+
+    names = db_fetch_play_count(cur)
+    print("\n".join([f"{x[0]:50s}{x[1]:30s}{x[2]:4d}" for x in names]))
+
 
     if "-i" in sys.argv or "--interactive" in sys.argv:
         while True:
