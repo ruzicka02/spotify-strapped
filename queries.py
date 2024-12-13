@@ -18,7 +18,9 @@ QUERIES_CREATE_TABLES: list[str] = [
 QUERY_FETCH_TOP_SONGS: str = """
     SELECT
         song_name,
+        song_id,
         artist_name,
+        artist_id,
         COUNT(*) AS play_count
     FROM
         played
@@ -30,6 +32,7 @@ QUERY_FETCH_TOP_SONGS: str = """
 QUERY_FETCH_TOP_ARTISTS: str = """
     SELECT
         artist_name,
+        artist_id,
         COUNT(*) AS play_count
     FROM
         played
@@ -40,6 +43,7 @@ QUERY_FETCH_TOP_ARTISTS: str = """
 
 QUERY_FETCH_TOP_PLAYLISTS: str = """
     SELECT
+        playlist_uri,
         playlist_uri,
         COUNT(*) AS play_count
     FROM
@@ -53,7 +57,9 @@ QUERY_FETCH_TOP_PLAYLISTS: str = """
 QUERY_FETCH_ACTIVITY = """
     SELECT
         song_name,
+        song_id,
         artist_name,
+        artist_id,
         played_at
     FROM
         played"""
