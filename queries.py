@@ -25,9 +25,7 @@ QUERY_FETCH_TOP_SONGS: str = """
     GROUP BY
         song_id
     ORDER BY
-        play_count DESC
-    LIMIT
-        20"""
+        play_count DESC"""
 
 QUERY_FETCH_TOP_ARTISTS: str = """
     SELECT
@@ -38,9 +36,7 @@ QUERY_FETCH_TOP_ARTISTS: str = """
     GROUP BY
         artist_id
     ORDER BY
-        play_count DESC
-    LIMIT
-        20"""
+        play_count DESC"""
 
 QUERY_FETCH_TOP_PLAYLISTS: str = """
     SELECT
@@ -51,9 +47,7 @@ QUERY_FETCH_TOP_PLAYLISTS: str = """
     GROUP BY
         playlist_uri
     ORDER BY
-        play_count DESC
-    LIMIT
-        20"""
+        play_count DESC"""
 
 
 QUERY_FETCH_ACTIVITY = """

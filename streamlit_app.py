@@ -7,8 +7,10 @@ def app_header():
     st.set_page_config(page_title="Spotify Strapped", page_icon="🎶")
     st.title("Spotify Strapped DEVEL")
 
-def print_table(table: list[tuple[str]]):
-    markdown = "Song | Artist | Played\n-|-|-\n" + "\n".join(["|".join([str(x) for x in row]) for row in table])
+def print_table(table: list[tuple[str]], headers: list[str]):
+    markdown = " | ".join(headers) + '\n'
+    markdown += "|".join(['-' for _ in headers]) + '\n'
+    markdown += "\n".join(["|".join([str(x) for x in row]) for row in table])
     st.markdown(markdown)
 
 if __name__ == "__main__":
@@ -18,25 +20,33 @@ if __name__ == "__main__":
     conn, cur = db_connect()
 
     with tabs[0]:
-        cur.execute(QUERY_FETCH_TOP_SONGS)
+        limit_songs = st.number_input("Limit", min_value=1, value=20, key="songs")
+
+        cur.execute(QUERY_FETCH_TOP_SONGS + f" LIMIT {limit_songs}")
         names = cur.fetchall()
 
-        print_table(names)
+        print_table(names, ["Song", "Artist", "Played"])
 
     with tabs[1]:
-        cur.execute(QUERY_FETCH_TOP_ARTISTS)
+        limit_artists = st.number_input("Limit", min_value=1, value=20, key="artists")
+
+        cur.execute(QUERY_FETCH_TOP_ARTISTS + f" LIMIT {limit_artists}")
         names = cur.fetchall()
 
-        print_table(names)
+        print_table(names, ["Artist", "Played"])
 
     with tabs[2]:
-        cur.execute(QUERY_FETCH_TOP_PLAYLISTS)
+        limit_playlists = st.number_input("Limit", min_value=1, value=10)
+
+        cur.execute(QUERY_FETCH_TOP_PLAYLISTS + f" LIMIT {limit_playlists}")
         names = cur.fetchall()
 
-        print_table(names)
+        print_table(names, ["Playlist", "Played"])
 
     with tabs[3]:
-        cur.execute(QUERY_FETCH_ACTIVITY)
+        limit_activity = st.number_input("Limit", min_value=1, value=20)
+
+        cur.execute(QUERY_FETCH_ACTIVITY + f" LIMIT {limit_activity}")
         names = cur.fetchall()
 
-        print_table(names)
+        print_table(names, ["Song", "Artist", "Timestamp"])
