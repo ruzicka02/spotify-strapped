@@ -1,6 +1,8 @@
+import time
+
 import streamlit as st
 
-from db import db_connect
+from db import db_connect, db_read_cutoff
 from queries import QUERY_FETCH_TOP_SONGS, QUERY_FETCH_TOP_ARTISTS, QUERY_FETCH_TOP_PLAYLISTS, QUERY_FETCH_ACTIVITY
 
 ARTIST_BASE_URL = "https://open.spotify.com/artist"
@@ -39,9 +41,13 @@ def print_table(table: list[tuple[str]], headers: list[str]):
 
 if __name__ == "__main__":
     app_header()
-    tabs: list[st.delta_generator.DeltaGenerator] = st.tabs(["Songs", "Artists", "Playlists", "Activity"])
 
     conn, cur = db_connect()
+
+    cutoff: int = db_read_cutoff(cur)
+    st.markdown(f"Last cutoff time: **{time.asctime(time.gmtime(cutoff / 1000))} GMT**")
+
+    tabs: list[st.delta_generator.DeltaGenerator] = st.tabs(["Songs", "Artists", "Playlists", "Activity"])
 
     with tabs[0]:
         limit_songs = st.number_input("Limit", min_value=1, value=20, key="songs")
