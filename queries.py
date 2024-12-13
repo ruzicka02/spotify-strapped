@@ -62,4 +62,6 @@ QUERY_FETCH_ACTIVITY = """
         artist_id,
         played_at
     FROM
-        played"""
+        played
+    ORDER BY
+        played_at desc"""
