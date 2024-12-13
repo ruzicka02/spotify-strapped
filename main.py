@@ -6,7 +6,7 @@ import time
 import spotipy
 from dotenv import load_dotenv
 
-from queries import QUERY_FETCH_PLAY_COUNT
+from queries import QUERY_FETCH_TOP_SONGS
 from db import db_connect, db_init, db_read_cutoff, db_write_cutoff, db_write_played
 
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
         cur.execute("SELECT COUNT(DISTINCT song_id) FROM played")
         print(f"Total unique songs in DB: {cur.fetchone()[0]}")
 
-        cur.execute(QUERY_FETCH_PLAY_COUNT)
+        cur.execute(QUERY_FETCH_TOP_SONGS)
         names = cur.fetchall()
         print("\n".join([f"{x[0]:50s}{x[1]:30s}{x[2]:4d}" for x in names]))
 

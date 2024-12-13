@@ -9,13 +9,13 @@ QUERIES_CREATE_TABLES: list[str] = [
         song_duration_ms INTEGER,
         played_at TEXT,
         playlist_uri TEXT
-    );""",
+    )""",
     """CREATE TABLE IF NOT EXISTS cutoff (
         timestamp INTEGER
-    );""",
+    )""",
 ]
 
-QUERY_FETCH_PLAY_COUNT: str = """
+QUERY_FETCH_TOP_SONGS: str = """
     SELECT
         song_name,
         artist_name,
@@ -23,11 +23,37 @@ QUERY_FETCH_PLAY_COUNT: str = """
     FROM
         played
     GROUP BY
-        song_id, song_name
+        song_id
     ORDER BY
         play_count DESC
     LIMIT
-        20;"""
+        20"""
+
+QUERY_FETCH_TOP_ARTISTS: str = """
+    SELECT
+        artist_name,
+        COUNT(*) AS play_count
+    FROM
+        played
+    GROUP BY
+        artist_id
+    ORDER BY
+        play_count DESC
+    LIMIT
+        20"""
+
+QUERY_FETCH_TOP_PLAYLISTS: str = """
+    SELECT
+        playlist_uri,
+        COUNT(*) AS play_count
+    FROM
+        played
+    GROUP BY
+        playlist_uri
+    ORDER BY
+        play_count DESC
+    LIMIT
+        20"""
 
 
 QUERY_FETCH_ACTIVITY = """
@@ -36,4 +62,4 @@ QUERY_FETCH_ACTIVITY = """
         artist_name,
         played_at
     FROM
-        played;"""
+        played"""
