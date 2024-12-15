@@ -4,18 +4,18 @@ import sqlite3
 import time
 
 import spotipy
-from dotenv import load_dotenv
+from dotenv import dotenv_values
 
 from queries import QUERY_FETCH_TOP_SONGS
 from db import db_connect, db_init, db_read_cutoff, db_write_cutoff, db_write_played
 
 
-def spotify_fetch(after: int | None = None) -> dict:
+def spotify_fetch(env: dict, after: int | None = None) -> dict:
     sp = spotipy.Spotify(
         auth_manager=spotipy.oauth2.SpotifyOAuth(
-            client_id=os.environ.get("SPOTIFY_CLIENT_ID"),
-            client_secret=os.environ.get("SPOTIFY_CLIENT_SECRET"),
-            redirect_uri=os.environ.get("SPOTIFY_REDIRECT_URI"),
+            client_id=env_values.get("SPOTIFY_CLIENT_ID"),
+            client_secret=env_values.get("SPOTIFY_CLIENT_SECRET"),
+            redirect_uri=env_values.get("SPOTIFY_REDIRECT_URI"),
             scope="user-read-recently-played",
         )
     )
@@ -31,9 +31,9 @@ def spotify_fetch(after: int | None = None) -> dict:
     return results
 
 
-def single_fetch(cur: sqlite3.Cursor):
+def single_fetch(cur: sqlite3.Cursor, env_values: dict):
     cutoff = db_read_cutoff(cur)
-    results = spotify_fetch(cutoff)
+    results = spotify_fetch(env_values, cutoff)
 
     # non-zero amount of songs found
     if results["items"]:
@@ -71,25 +71,26 @@ def interactive(conn: sqlite3.Connection, cur: sqlite3.Cursor):
 
 if __name__ == "__main__":
     while True:
-        load_dotenv()
-
-        refresh_period = int(os.environ.get("REFRESH_PERIOD_S"))
+        # refresh-friendly representation of dotenv, unlike load_dotenv
+        env_values = dotenv_values()
+        refresh_period = int(env_values.get("REFRESH_PERIOD_S"))
 
         conn, cur = db_connect()
         db_init(cur)
 
-        single_fetch(cur)
+        single_fetch(cur, env_values)
         conn.commit()
 
-        cur.execute("SELECT COUNT(*) FROM played")
-        print(f"Total records in DB: {cur.fetchone()[0]}")
+        if "-v" in sys.argv or "--verbose" in sys.argv:
+            cur.execute("SELECT COUNT(*) FROM played")
+            print(f"Total records in DB: {cur.fetchone()[0]}")
 
-        cur.execute("SELECT COUNT(DISTINCT song_id) FROM played")
-        print(f"Total unique songs in DB: {cur.fetchone()[0]}")
+            cur.execute("SELECT COUNT(DISTINCT song_id) FROM played")
+            print(f"Total unique songs in DB: {cur.fetchone()[0]}")
 
-        cur.execute(QUERY_FETCH_TOP_SONGS)
-        names = cur.fetchall()
-        print("\n".join([f"{x[0]:50s}{x[1]:30s}{x[2]:4d}" for x in names]))
+            cur.execute(QUERY_FETCH_TOP_SONGS + " LIMIT 20")
+            names = cur.fetchall()
+            print("\n".join([f"{x[0]:50s}{x[2]:30s}{x[4]:4d}" for x in names]))
 
         if "-i" in sys.argv or "--interactive" in sys.argv:
             interactive(conn, cur)
