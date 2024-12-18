@@ -78,7 +78,18 @@ if __name__ == "__main__":
         conn, cur = db_connect()
         db_init(cur)
 
-        single_fetch(cur, env_values)
+        try:
+            single_fetch(cur, env_values)
+        except Exception as e:
+            conn.close()
+            print(e)
+
+            print(
+                f"Waking up at {time.asctime(time.gmtime(time.time() + refresh_period))} UTC"
+            )
+            time.sleep(refresh_period)
+            continue
+
         conn.commit()
 
         if "-v" in sys.argv or "--verbose" in sys.argv:
