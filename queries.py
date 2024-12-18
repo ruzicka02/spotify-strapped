@@ -21,37 +21,41 @@ QUERY_FETCH_TOP_SONGS: str = """
         song_id,
         artist_name,
         artist_id,
-        COUNT(*) AS play_count
+        COUNT(*) AS play_count,
+        SUM(song_duration_ms) / 1000 AS total_time
     FROM
         played
     GROUP BY
         song_id
     ORDER BY
-        play_count DESC"""
+        play_count DESC, song_duration_ms DESC"""
+# TODO... choose what to order by (play_count/total_time)
 
 QUERY_FETCH_TOP_ARTISTS: str = """
     SELECT
         artist_name,
         artist_id,
-        COUNT(*) AS play_count
+        COUNT(*) AS play_count,
+        SUM(song_duration_ms) / 1000 AS total_time
     FROM
         played
     GROUP BY
         artist_id
     ORDER BY
-        play_count DESC"""
+        play_count DESC, total_time DESC"""
 
 QUERY_FETCH_TOP_PLAYLISTS: str = """
     SELECT
         playlist_uri,
         playlist_uri,
-        COUNT(*) AS play_count
+        COUNT(*) AS play_count,
+        SUM(song_duration_ms) / 1000 AS total_time
     FROM
         played
     GROUP BY
         playlist_uri
     ORDER BY
-        play_count DESC"""
+        play_count DESC, total_time DESC"""
 
 
 QUERY_FETCH_ACTIVITY = """
@@ -64,4 +68,4 @@ QUERY_FETCH_ACTIVITY = """
     FROM
         played
     ORDER BY
-        played_at desc"""
+        played_at DESC"""

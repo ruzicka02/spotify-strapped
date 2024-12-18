@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
         names = preprocess_table_urls(names, {0: (SONG_BASE_URL, 1),
                                               2: (ARTIST_BASE_URL, 3)})
-        print_table(names, ["Song", "Artist", "Played"])
+        print_table(names, ["Song", "Artist", "Played", "Total time (s)"])
 
     with tabs[1]:
         limit_artists = st.number_input("Limit", min_value=1, value=20, key="artists")
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         names = cur.fetchall()
 
         names = preprocess_table_urls(names, {0: (ARTIST_BASE_URL, 1)})
-        print_table(names, ["Artist", "Played"])
+        print_table(names, ["Artist", "Played", "Total time (s)"])
 
     with tabs[2]:
         limit_playlists = st.number_input("Limit", min_value=1, value=10)
@@ -76,7 +76,7 @@ if __name__ == "__main__":
 
         # TODO... fetch real playlist names from Spotify API
         names = preprocess_table_urls(names, {0: (PLAYLIST_BASE_URL, 1)})
-        print_table(names, ["Playlist", "Played"])
+        print_table(names, ["Playlist", "Played", "Total time (s)"])
 
     with tabs[3]:
         limit_activity = st.number_input("Limit", min_value=1, value=20)
