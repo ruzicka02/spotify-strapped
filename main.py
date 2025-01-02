@@ -2,6 +2,7 @@ import sys
 import os
 import sqlite3
 import time
+from configparser import ConfigParser
 
 import spotipy
 from dotenv import dotenv_values
@@ -33,9 +34,15 @@ def spotify_fetch(env_values: dict, after: int | None = None, cache_path: str = 
     return results
 
 
-def single_fetch(cur: sqlite3.Cursor, env_values: dict):
+def single_user_fetch(cur: sqlite3.Cursor, env_values: dict, user: dict):
+    cache_name = user.get("cache")
+    if not cache_name:
+        cache_name = ".cache"
+
     cutoff = db_read_cutoff(cur)
-    results = spotify_fetch(env_values, cutoff)
+    results = spotify_fetch(env_values, cutoff, "users/" + cache_name)
+
+    print(f"=== {user.get("display_name")} ===")
 
     # non-zero amount of songs found
     if results["items"]:
@@ -52,7 +59,18 @@ def single_fetch(cur: sqlite3.Cursor, env_values: dict):
             str((x["track"]["name"], x["played_at"])) for x in results["items"]
         ]
 
-        print("\n".join(summary))
+        print("\n".join(summary), sep="\n")
+
+
+def fetch_all_users(cur: sqlite3.Cursor, env_values: dict):
+    config = ConfigParser()
+    config.read("users/users.ini")
+
+    for user in config:
+        if user == "DEFAULT":
+            continue
+
+        single_user_fetch(cur, env_values, config[user])
 
 
 def interactive(conn: sqlite3.Connection, cur: sqlite3.Cursor):
@@ -80,11 +98,14 @@ if __name__ == "__main__":
         conn, cur = db_connect()
         db_init(cur)
 
+        # fetch_all_users(cur, env_values)
+
         try:
-            single_fetch(cur, env_values)
+            fetch_all_users(cur, env_values)
+            # single_user_fetch(cur, env_values, {})
         except Exception as e:
             conn.close()
-            print(e)
+            print(type(e), e)
 
             print(
                 f"Waking up at {time.asctime(time.gmtime(time.time() + refresh_period))} UTC"
