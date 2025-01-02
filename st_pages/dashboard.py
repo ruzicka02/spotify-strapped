@@ -1,4 +1,5 @@
 import time
+from configparser import ConfigParser
 
 import streamlit as st
 
@@ -12,6 +13,14 @@ PLAYLIST_BASE_URL = "https://open.spotify.com/playlist"
 def app_header():
     st.set_page_config(page_title="Spotify Strapped", page_icon="🎶")
     st.title("Spotify Strapped DEVEL")
+
+def user_selector():
+    config = ConfigParser()
+    config.read("users/users.ini")
+    user_list = list(config)
+    user_list.remove("DEFAULT")
+
+    return user_list
 
 def preprocess_table_urls(table: list[tuple[str]], urls: dict[int, tuple[str, int]]) -> list[tuple[str]]:
     """
@@ -40,6 +49,8 @@ def print_table(table: list[tuple[str]], headers: list[str]):
     st.markdown(markdown)
 
 app_header()
+username = st.selectbox("Username", user_selector())
+
 
 conn, cur = db_connect()
 
@@ -51,7 +62,7 @@ tabs: list[st.delta_generator.DeltaGenerator] = st.tabs(["Songs", "Artists", "Pl
 with tabs[0]:
     limit_songs = st.number_input("Limit", min_value=1, value=20, key="songs")
 
-    cur.execute(QUERY_FETCH_TOP_SONGS + f" LIMIT {limit_songs}")
+    cur.execute(QUERY_FETCH_TOP_SONGS.format(username) + f" LIMIT {limit_songs}")
     names = cur.fetchall()
 
     names = preprocess_table_urls(names, {0: (SONG_BASE_URL, 1),

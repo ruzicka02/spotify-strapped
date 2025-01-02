@@ -8,7 +8,8 @@ QUERIES_CREATE_TABLES: list[str] = [
         album_id TEXT,
         song_duration_ms INTEGER,
         played_at TEXT,
-        playlist_uri TEXT
+        playlist_uri TEXT,
+        user_id TEXT
     )""",
     """CREATE TABLE IF NOT EXISTS cutoff (
         timestamp INTEGER
@@ -25,6 +26,8 @@ QUERY_FETCH_TOP_SONGS: str = """
         SUM(song_duration_ms) / 1000 AS total_time
     FROM
         played
+    WHERE
+        played.user_id = '{}'
     GROUP BY
         song_id
     ORDER BY

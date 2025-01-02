@@ -50,7 +50,7 @@ def single_user_fetch(cur: sqlite3.Cursor, env_values: dict, user: dict):
             print(f"Saving cutoff timestamp {results['cursors']['after']}")
             db_write_cutoff(cur, int(results["cursors"]["after"]))
 
-        db_write_played(results, cur)
+        db_write_played(results, cur, user["user_id"])
 
         # with open("results.json", "w") as f:
         #     f.write(json.dumps(results, indent=2, ensure_ascii=False))
@@ -70,7 +70,7 @@ def fetch_all_users(cur: sqlite3.Cursor, env_values: dict):
         if user == "DEFAULT":
             continue
 
-        single_user_fetch(cur, env_values, config[user])
+        single_user_fetch(cur, env_values, dict(config[user]) | {"user_id": user})
 
 
 def interactive(conn: sqlite3.Connection, cur: sqlite3.Cursor):

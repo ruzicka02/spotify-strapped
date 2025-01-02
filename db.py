@@ -13,7 +13,7 @@ def db_init(cur: sqlite3.Cursor):
         cur.execute(q)
 
 
-def db_write_played(spotify_res: dict, cur: sqlite3.Cursor):
+def db_write_played(spotify_res: dict, cur: sqlite3.Cursor, user_id: str):
     for item in spotify_res["items"]:
         track = item["track"]
         context = item.get("context", {})
@@ -35,8 +35,8 @@ def db_write_played(spotify_res: dict, cur: sqlite3.Cursor):
             """
             INSERT INTO played (
                 song_name, song_id, artist_name, artist_id, album_name, album_id,
-                song_duration_ms, played_at, playlist_uri
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+                song_duration_ms, played_at, playlist_uri, user_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
         """,
             (
                 song_name,
@@ -48,6 +48,7 @@ def db_write_played(spotify_res: dict, cur: sqlite3.Cursor):
                 song_duration_ms,
                 played_at,
                 playlist_uri,
+                user_id,
             ),
         )
 
