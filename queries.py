@@ -12,7 +12,8 @@ QUERIES_CREATE_TABLES: list[str] = [
         user_id TEXT
     )""",
     """CREATE TABLE IF NOT EXISTS cutoff (
-        timestamp INTEGER
+        timestamp INTEGER,
+        user_id TEXT
     )""",
 ]
 

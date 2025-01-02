@@ -53,12 +53,12 @@ def db_write_played(spotify_res: dict, cur: sqlite3.Cursor, user_id: str):
         )
 
 
-def db_write_cutoff(cur: sqlite3.Cursor, cutoff: int):
-    cur.execute("DELETE FROM cutoff")
-    cur.execute("INSERT INTO cutoff (timestamp) VALUES (?);", (cutoff,))
+def db_write_cutoff(cur: sqlite3.Cursor, cutoff: int, user_id: str):
+    cur.execute(f"DELETE FROM cutoff WHERE user_id = '{user_id}'")
+    cur.execute("INSERT INTO cutoff (timestamp, user_id) VALUES (?, ?);", (cutoff, user_id))
 
 
-def db_read_cutoff(cur: sqlite3.Cursor) -> int | None:
-    cur.execute("SELECT timestamp FROM cutoff LIMIT 1")
+def db_read_cutoff(cur: sqlite3.Cursor, user_id: str) -> int | None:
+    cur.execute(f"SELECT timestamp FROM cutoff WHERE user_id = '{user_id}' LIMIT 1")
     result = cur.fetchone()
     return result[0] if result else None

@@ -54,7 +54,7 @@ username = st.selectbox("Username", user_selector())
 
 conn, cur = db_connect()
 
-cutoff: int = db_read_cutoff(cur)
+cutoff: int = db_read_cutoff(cur, username)
 st.markdown(f"Last cutoff time: **{time.asctime(time.gmtime(cutoff / 1000))} GMT**")
 
 tabs: list[st.delta_generator.DeltaGenerator] = st.tabs(["Songs", "Artists", "Playlists", "Activity"])

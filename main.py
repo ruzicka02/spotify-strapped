@@ -39,7 +39,7 @@ def single_user_fetch(cur: sqlite3.Cursor, env_values: dict, user: dict):
     if not cache_name:
         cache_name = ".cache"
 
-    cutoff = db_read_cutoff(cur)
+    cutoff = db_read_cutoff(cur, user["user_id"])
     results = spotify_fetch(env_values, cutoff, "users/" + cache_name)
 
     print(f"=== {user.get("display_name")} ===")
@@ -48,7 +48,7 @@ def single_user_fetch(cur: sqlite3.Cursor, env_values: dict, user: dict):
     if results["items"]:
         if results.get("cursors", None):
             print(f"Saving cutoff timestamp {results['cursors']['after']}")
-            db_write_cutoff(cur, int(results["cursors"]["after"]))
+            db_write_cutoff(cur, int(results["cursors"]["after"]), user["user_id"])
 
         db_write_played(results, cur, user["user_id"])
 
