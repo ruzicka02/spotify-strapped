@@ -1,6 +1,8 @@
 .env
-.cache
 __pycache__/
+
+.cache*
+!.cache_example
 
 results.json
 *.db

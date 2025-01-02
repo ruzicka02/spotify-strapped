@@ -10,13 +10,15 @@ from queries import QUERY_FETCH_TOP_SONGS
 from db import db_connect, db_init, db_read_cutoff, db_write_cutoff, db_write_played
 
 
-def spotify_fetch(env: dict, after: int | None = None) -> dict:
+def spotify_fetch(env_values: dict, after: int | None = None, cache_path: str = "users/.cache") -> dict:
     sp = spotipy.Spotify(
         auth_manager=spotipy.oauth2.SpotifyOAuth(
             client_id=env_values.get("SPOTIFY_CLIENT_ID"),
             client_secret=env_values.get("SPOTIFY_CLIENT_SECRET"),
             redirect_uri=env_values.get("SPOTIFY_REDIRECT_URI"),
             scope="user-read-recently-played",
+            show_dialog=True,
+            cache_handler=spotipy.CacheFileHandler(cache_path=cache_path),
         )
     )
 
