@@ -43,6 +43,8 @@ QUERY_FETCH_TOP_ARTISTS: str = """
         SUM(song_duration_ms) / 1000 AS total_time
     FROM
         played
+    WHERE
+        played.user_id = '{}'
     GROUP BY
         artist_id
     ORDER BY
@@ -56,6 +58,8 @@ QUERY_FETCH_TOP_PLAYLISTS: str = """
         SUM(song_duration_ms) / 1000 AS total_time
     FROM
         played
+    WHERE
+        played.user_id = '{}'
     GROUP BY
         playlist_uri
     ORDER BY
@@ -71,5 +75,7 @@ QUERY_FETCH_ACTIVITY = """
         played_at
     FROM
         played
+    WHERE
+        played.user_id = '{}'
     ORDER BY
         played_at DESC"""
