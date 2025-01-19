@@ -18,7 +18,7 @@ def single_user_fetch(cur: sqlite3.Cursor, env_values: dict, user: dict):
     cutoff = db_read_cutoff(cur, user["user_id"])
     results = spotify_fetch(env_values, cutoff, "users/" + cache_name)
 
-    print(f"=== {user.get("display_name")} ===")
+    print(f"=== {user.get('display_name')} ===")
 
     # non-zero amount of songs found
     if results["items"]:
