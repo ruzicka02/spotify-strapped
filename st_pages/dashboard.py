@@ -13,7 +13,7 @@ PLAYLIST_BASE_URL = "https://open.spotify.com/playlist"
 
 def app_header():
     st.set_page_config(page_title="Spotify Strapped", page_icon="🎶")
-    st.title("Spotify Strapped DEVEL")
+    st.title("Spotify Strapped v0.3")
 
 def user_selector():
     config = ConfigParser()
