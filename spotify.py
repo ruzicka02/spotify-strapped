@@ -33,8 +33,11 @@ def public_playlist_name(playlist_id: str) -> str | None:
     Workaround was earlier possible with https://developer.spotify.com/documentation/web-api/reference/get-a-categories-playlists
     This feature got discontinued in Nov 2024, so we just get the name from the webpage
     """
-    res = urllib.request.urlopen(f"https://open.spotify.com/playlist/{playlist_id}").read()
+    try:
+        res = urllib.request.urlopen(f"https://open.spotify.com/playlist/{playlist_id}").read()
+    except urllib.error.HTTPError:
+        return None
+
     # alternatively bs.title.name, but this contains extra junk
-    # this property is also not present if "Page not found"
     bs_res = bs4.BeautifulSoup(res, "html.parser").head.find("meta", attrs={"property": "og:title"})
     return bs_res.get("content") if bs_res else None
