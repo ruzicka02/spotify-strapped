@@ -26,7 +26,7 @@ def spotify_fetch(env_values: dict, after: int | None = None, cache_path: str = 
     return results
 
 
-def public_playlist_name(playlist_id: str) -> str:
+def public_playlist_name(playlist_id: str) -> str | None:
     """
     Spotify has a nice API endpoint, https://developer.spotify.com/documentation/web-api/reference/get-playlist
     This does not work for Spotify-created playlists
@@ -34,5 +34,7 @@ def public_playlist_name(playlist_id: str) -> str:
     This feature got discontinued in Nov 2024, so we just get the name from the webpage
     """
     res = urllib.request.urlopen(f"https://open.spotify.com/playlist/{playlist_id}").read()
-    return bs4.BeautifulSoup(res).head.find("meta", attrs={"property": "og:title"}).get("content")
     # alternatively bs.title.name, but this contains extra junk
+    # this property is also not present if "Page not found"
+    bs_res = bs4.BeautifulSoup(res, "html.parser").head.find("meta", attrs={"property": "og:title"})
+    return bs_res.get("content") if bs_res else None
