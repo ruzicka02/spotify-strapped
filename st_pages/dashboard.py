@@ -23,7 +23,10 @@ def user_selector():
 
     return user_list
 
-def get_playlist_name(playlist_uri: str) -> str:
+def get_playlist_name(playlist_uri: str | None) -> str | None:
+    if not playlist_uri:
+        return None
+
     playlist_id = playlist_uri.split(':')[-1]
 
     # name present in db
