@@ -3,8 +3,9 @@ from configparser import ConfigParser
 
 import streamlit as st
 
-from db import db_connect, db_read_cutoff
+from db import db_connect, db_read_cutoff, db_get_playlist_name, db_write_playlist
 from queries import QUERY_FETCH_TOP_SONGS, QUERY_FETCH_TOP_ARTISTS, QUERY_FETCH_TOP_PLAYLISTS, QUERY_FETCH_ACTIVITY
+from spotify import public_playlist_name
 
 ARTIST_BASE_URL = "https://open.spotify.com/artist"
 SONG_BASE_URL = "https://open.spotify.com/track"
@@ -21,6 +22,22 @@ def user_selector():
     user_list.remove("DEFAULT")
 
     return user_list
+
+def get_playlist_name(playlist_uri: str) -> str:
+    playlist_id = playlist_uri.split(':')[-1]
+
+    # name present in db
+    if name := db_get_playlist_name(cur, playlist_id):
+        return name
+
+    print(f"Fetching name of {playlist_uri}")
+    if name_fetched := public_playlist_name(playlist_id):
+        db_write_playlist(cur, playlist_id, name_fetched)
+        return name_fetched
+
+    print("Fetch failed, keeping ID on display")
+    return playlist_id
+
 
 def preprocess_table_urls(table: list[tuple[str]], urls: dict[int, tuple[str, int]]) -> list[tuple[str]]:
     """
@@ -84,7 +101,10 @@ with tabs[2]:
     cur.execute(QUERY_FETCH_TOP_PLAYLISTS.format(username) + f" LIMIT {limit_playlists}")
     names = cur.fetchall()
 
-    # TODO... fetch real playlist names from Spotify API
+    # fetch real playlist names from Spotify API
+    names = [(get_playlist_name(x[0]), *x[1:]) for x in names]
+    conn.commit()
+
     names = preprocess_table_urls(names, {0: (PLAYLIST_BASE_URL, 1)})
     print_table(names, ["Playlist", "Played", "Total time (s)"])
 
