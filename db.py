@@ -62,3 +62,17 @@ def db_read_cutoff(cur: sqlite3.Cursor, user_id: str) -> int | None:
     cur.execute(f"SELECT timestamp FROM cutoff WHERE user_id = '{user_id}' LIMIT 1")
     result = cur.fetchone()
     return result[0] if result else None
+
+
+def db_write_playlist(cur: sqlite3.Cursor, id: str, name: str):
+    cur.execute("INSERT INTO playlist_names (id, name) VALUES (?, ?);", (id, name))
+
+
+def db_get_playlist_name(cur: sqlite3.Cursor, identifier: str) -> str | None:
+    # check in case URI was given instead of ID stored in DB
+    if ':' in identifier:
+        identifier = identifier.split(':')[-1]
+
+    cur.execute("SELECT name FROM playlist_names WHERE id = ? LIMIT 1", (identifier,))
+    result = cur.fetchone()
+    return result[0] if result else None

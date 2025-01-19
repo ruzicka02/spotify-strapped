@@ -15,6 +15,10 @@ QUERIES_CREATE_TABLES: list[str] = [
         timestamp INTEGER,
         user_id TEXT
     )""",
+    """CREATE TABLE IF NOT EXISTS playlist_names (
+        id TEXT,
+        name TEXT
+    )""",
 ]
 
 QUERY_FETCH_TOP_SONGS: str = """

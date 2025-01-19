@@ -3,9 +3,11 @@ import os
 import sqlite3
 import time
 from configparser import ConfigParser
+import urllib
 
 import spotipy
 from dotenv import dotenv_values
+import bs4
 
 from queries import QUERY_FETCH_TOP_SONGS
 from db import db_connect, db_init, db_read_cutoff, db_write_cutoff, db_write_played
@@ -32,6 +34,18 @@ def spotify_fetch(env_values: dict, after: int | None = None, cache_path: str = 
     print(len(results.get("items", [])), "items fetched from Spotify")
 
     return results
+
+
+def public_playlist_name(playlist_id: str) -> str:
+    """
+    Spotify has a nice API endpoint, https://developer.spotify.com/documentation/web-api/reference/get-playlist
+    This does not work for Spotify-created playlists
+    Workaround was earlier possible with https://developer.spotify.com/documentation/web-api/reference/get-a-categories-playlists
+    This feature got discontinued in Nov 2024, so we just get the name from the webpage
+    """
+    res = urllib.request.urlopen(f"https://open.spotify.com/playlist/{playlist_id}").read()
+    return bs4.BeautifulSoup(res).head.find("meta", attrs={"property": "og:title"}).get("content")
+    # alternatively bs.title.name, but this contains extra junk
 
 
 def single_user_fetch(cur: sqlite3.Cursor, env_values: dict, user: dict):
