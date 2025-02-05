@@ -32,7 +32,7 @@ QUERY_FETCH_TOP_SONGS: str = """
     FROM
         played
     WHERE
-        played.user_id = '{}'
+        played.user_id = ?
     GROUP BY
         song_id
     ORDER BY
@@ -48,7 +48,7 @@ QUERY_FETCH_TOP_ARTISTS: str = """
     FROM
         played
     WHERE
-        played.user_id = '{}'
+        played.user_id = ?
     GROUP BY
         artist_id
     ORDER BY
@@ -63,7 +63,7 @@ QUERY_FETCH_TOP_PLAYLISTS: str = """
     FROM
         played
     WHERE
-        played.user_id = '{}'
+        played.user_id = ?
     GROUP BY
         playlist_uri
     ORDER BY
@@ -80,6 +80,6 @@ QUERY_FETCH_ACTIVITY = """
     FROM
         played
     WHERE
-        played.user_id = '{}'
+        played.user_id = ?
     ORDER BY
         played_at DESC"""

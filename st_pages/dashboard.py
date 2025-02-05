@@ -82,7 +82,7 @@ tabs: list[st.delta_generator.DeltaGenerator] = st.tabs(["Songs", "Artists", "Pl
 with tabs[0]:
     limit_songs = st.number_input("Limit", min_value=1, value=20, key="songs")
 
-    cur.execute(QUERY_FETCH_TOP_SONGS.format(username) + f" LIMIT {limit_songs}")
+    cur.execute(QUERY_FETCH_TOP_SONGS + f" LIMIT ?", (username, limit_songs))
     names = cur.fetchall()
 
     names = preprocess_table_urls(names, {0: (SONG_BASE_URL, 1),
@@ -92,7 +92,7 @@ with tabs[0]:
 with tabs[1]:
     limit_artists = st.number_input("Limit", min_value=1, value=20, key="artists")
 
-    cur.execute(QUERY_FETCH_TOP_ARTISTS.format(username) + f" LIMIT {limit_artists}")
+    cur.execute(QUERY_FETCH_TOP_ARTISTS + f" LIMIT ?", (username, limit_artists))
     names = cur.fetchall()
 
     names = preprocess_table_urls(names, {0: (ARTIST_BASE_URL, 1)})
@@ -101,7 +101,7 @@ with tabs[1]:
 with tabs[2]:
     limit_playlists = st.number_input("Limit", min_value=1, value=10)
 
-    cur.execute(QUERY_FETCH_TOP_PLAYLISTS.format(username) + f" LIMIT {limit_playlists}")
+    cur.execute(QUERY_FETCH_TOP_PLAYLISTS + f" LIMIT ?", (username, limit_playlists))
     names = cur.fetchall()
 
     # fetch real playlist names from Spotify API
@@ -114,7 +114,7 @@ with tabs[2]:
 with tabs[3]:
     limit_activity = st.number_input("Limit", min_value=1, value=20)
 
-    cur.execute(QUERY_FETCH_ACTIVITY.format(username) + f" LIMIT {limit_activity}")
+    cur.execute(QUERY_FETCH_ACTIVITY + f" LIMIT ?", (username, limit_activity))
     names = cur.fetchall()
 
     names = preprocess_table_urls(names, {0: (SONG_BASE_URL, 1),
